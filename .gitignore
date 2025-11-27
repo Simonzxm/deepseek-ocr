@@ -1,0 +1,80 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+*.egg
+pip-wheel-metadata/
+
+# Virtual environments
+.env
+.env.*
+.venv/
+venv/
+env/
+ENV/
+
+# Python tooling caches
+.pytest_cache/
+.cache
+.mypy_cache/
+tox.ini.cache
+
+# Jupyter
+.ipynb_checkpoints
+
+# IDEs and editors
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs, databases, local files
+*.log
+logs/
+*.sqlite3
+*.db
+
+# Data, outputs, models (common for ML/ODR projects)
+data/
+datasets/
+raw_data/
+processed_data/
+outputs/
+results/
+models/
+checkpoints/
+weights/
+mlruns/
+wandb/
+saved_models/
+
+# Model files
+*.ckpt
+*.pth
+*.pt
+*.h5
+*.pb
+*.onnx
+*.tflite
+
+# Large artifacts
+*.tar.gz
+*.zip
+
+# Secrets / keys
+*.pem
+*.key
+.env.local
+
+# Docker overrides
+docker-compose.override.yml
