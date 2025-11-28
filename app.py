@@ -111,7 +111,7 @@ if uploaded_file is not None:
                     for i, part in enumerate(parts):
                         if i % 2 == 0:
                             if part.strip():
-                                st.markdown(part)
+                                st.markdown(part, unsafe_allow_html=True)
                         else:
                             try:
                                 image_data = base64.b64decode(part)
