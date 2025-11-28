@@ -1,6 +1,8 @@
 import streamlit as st
 import tempfile
 import os
+import re
+import base64
 from pathlib import Path
 from PIL import Image
 import converter
@@ -47,6 +49,11 @@ if uploaded_file is not None:
                         
                         # Run OCR
                         out = converter.run_deepseek_for_image(img_path, prompt)
+                        
+                        if do_clean:
+                            out = converter.extract_and_embed_images(out, img_path)
+                            out = converter.clean_text(out)
+                            
                         results.append((i, out))
                         
                         progress_bar.progress(i / total_pages)
@@ -54,6 +61,11 @@ if uploaded_file is not None:
                     # Image processing
                     status_text.text("Processing image...")
                     out = converter.run_deepseek_for_image(input_path, prompt)
+                    
+                    if do_clean:
+                        out = converter.extract_and_embed_images(out, input_path)
+                        out = converter.clean_text(out)
+                        
                     results.append((1, out))
                     progress_bar.progress(100)
                 
@@ -62,9 +74,6 @@ if uploaded_file is not None:
                 # Combine results
                 full_text = f"<!-- Generated from {uploaded_file.name} -->\n\n"
                 for i, text in results:
-                    if do_clean:
-                        text = converter.clean_text(text)
-                    
                     if len(results) > 1:
                         full_text += f"<!-- Page {i} -->\n\n"
                     
@@ -83,11 +92,32 @@ if uploaded_file is not None:
                 
                 # Show raw text in an expander
                 with st.expander("View Raw Markdown Source", expanded=True):
-                    st.code(full_text, language="markdown")
+                    # Create a version with truncated base64 for display
+                    display_text = re.sub(
+                        r'!\[(.*?)\]\(data:image/.*?;base64,.*?\)',
+                        r'![\1](data:image/...;base64,...omitted...)',
+                        full_text,
+                        flags=re.DOTALL
+                    )
+                    st.code(display_text, language="markdown")
                 
                 # Preview rendered markdown (might not be perfect for complex layouts)
                 with st.expander("Preview Rendered Markdown"):
-                    st.markdown(full_text)
+                    # Split text by base64 image pattern to render images separately
+                    # This avoids freezing the browser with huge base64 strings in st.markdown
+                    pattern = r'!\[.*?\]\(data:image/.*?;base64,(.*?)\)'
+                    parts = re.split(pattern, full_text)
+                    
+                    for i, part in enumerate(parts):
+                        if i % 2 == 0:
+                            if part.strip():
+                                st.markdown(part)
+                        else:
+                            try:
+                                image_data = base64.b64decode(part)
+                                st.image(image_data)
+                            except Exception:
+                                st.warning("Could not render embedded image")
 
             except Exception as e:
                 st.error(f"An error occurred: {str(e)}")

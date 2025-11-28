@@ -46,6 +46,9 @@ async def convert_document(
                     
                     try:
                         out = converter.run_deepseek_for_image(img_path, prompt)
+                        if clean:
+                            out = converter.extract_and_embed_images(out, img_path)
+                            out = converter.clean_text(out)
                         results.append((i, out))
                     except Exception as e:
                         raise HTTPException(status_code=500, detail=f"OCR failed on page {i}: {str(e)}")
@@ -53,6 +56,9 @@ async def convert_document(
                 # Image processing
                 try:
                     out = converter.run_deepseek_for_image(input_path, prompt)
+                    if clean:
+                        out = converter.extract_and_embed_images(out, input_path)
+                        out = converter.clean_text(out)
                     results.append((1, out))
                 except Exception as e:
                     raise HTTPException(status_code=500, detail=f"OCR failed on image: {str(e)}")
@@ -60,9 +66,6 @@ async def convert_document(
             # Combine results
             full_text = f"<!-- Generated from {file.filename} -->\n\n"
             for i, text in results:
-                if clean:
-                    text = converter.clean_text(text)
-                
                 if len(results) > 1:
                     full_text += f"<!-- Page {i} -->\n\n"
                 
